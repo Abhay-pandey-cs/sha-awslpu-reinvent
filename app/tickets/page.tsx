@@ -14,11 +14,23 @@ import {
   Clock,
   Lock,
   Loader2,
-  Info
+  Info,
+  Sparkles
 } from "lucide-react"
 import { useAuth } from "@/providers/auth-provider"
 import { openRazorpayCheckout } from "@/lib/razorpay"
 import type { TicketCategory, Order, Ticket } from "@/types/ticketing"
+
+const universalPerksMarkdown = `
+- **Keynotes Sessions:** Keynotes session by industry leaders & AWS experts
+- **Live Hands-on Workshops:** Practical cloud labs and technical workshops
+- **MLH Hack Days:** 12-hour builder hackathon with mentorship & prizes
+- **AWS Cloud Credits:** AWS credits for all attendees
+- **AWS Certification Voucher:** Official AWS certification exam voucher worth upto $300
+- **Builder Center Subscription:** $579 AWS Builder Center subscription for all students
+- **Limited Edition Goodies:** AWS limited edition swag and kits for all attendees
+- **Food & Refreshments:** Complimentary meals, high-tea, and refreshments
+`
 
 export default function TicketsPage() {
   const router = useRouter()
@@ -354,7 +366,8 @@ export default function TicketsPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-8 lg:grid-cols-3">
+              <>
+                <div className="grid gap-8 lg:grid-cols-3">
                 {categories.map((cat, idx) => {
                   const priceInRupees = cat.price_in_paise / 100
                   const isHighlight =
@@ -451,7 +464,36 @@ export default function TicketsPage() {
                     </div>
                   )
                 })}
+</div>
+
+              <div className="mt-16 border border-white/10 bg-linear-to-b from-white/3 to-transparent p-6 sm:p-10">
+                <div className="mb-8 flex flex-col gap-2 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <div className="mb-2 flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-[#FF00D4]" />
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FF00D4]">
+                        Universal Festival Perks
+                      </span>
+                    </div>
+                    <h2 className="text-2xl font-light tracking-tight text-white sm:text-3xl">
+                      Included with{" "}
+                      <span className="bg-linear-to-r from-[#FF2D87] via-[#FF00D4] to-[#8B5CFF] bg-clip-text text-transparent">
+                        Every Pass
+                      </span>
+                    </h2>
+                  </div>
+                  <p className="max-w-sm text-xs text-white/50">
+                    Guaranteed for every registered attendee across all pass tiers.
+                  </p>
+                </div>
+
+                <div className="universal-perks-markdown text-xs text-white/70 leading-relaxed [&_ul]:grid [&_ul]:gap-4 [&_ul]:sm:grid-cols-2 [&_ul]:lg:grid-cols-4 [&_ul]:list-none [&_li]:relative [&_li]:border [&_li]:border-white/10 [&_li]:bg-white/2 [&_li]:p-5 [&_li]:transition-all [&_li]:duration-200 [&_li:hover]:border-[#FF00D4]/50 [&_li:hover]:bg-white/4 [&_li]:flex [&_li]:flex-col [&_strong]:text-[#FF2D87] [&_strong]:text-sm [&_strong]:font-medium [&_strong]:block [&_strong]:mb-1.5">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {universalPerksMarkdown}
+                  </ReactMarkdown>
+                </div>
               </div>
+              </>
             )}
 
             {selectedCategory && !existingTicket && (
@@ -617,10 +659,10 @@ export default function TicketsPage() {
                 </div>
                 <div className="flex justify-between py-1">
                   <span className="text-white/40">Status</span>
-                  <span className="text-emerald-400 uppercase font-semibold">Confirmed</span>
+<span className="text-emerald-400 uppercase font-semibold">Confirmed</span>
                 </div>
               </div>
-            )}
+             )}
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
