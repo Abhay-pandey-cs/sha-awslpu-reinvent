@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import {
   Check,
   ShieldCheck,
@@ -17,32 +19,6 @@ import {
 import { useAuth } from "@/providers/auth-provider"
 import { openRazorpayCheckout } from "@/lib/razorpay"
 import type { TicketCategory, Order, Ticket } from "@/types/ticketing"
-
-const tierPerks: Record<string, string[]> = {
-  "student pass (early bird)": [
-    "Full 5-Day Access (Nov 30 – Dec 4)",
-    "Keynotes & Technical Breakout Tracks",
-    "Official Festival Kit & Lanyard",
-    "Digital Certificate of Participation",
-    "Access to Builder Networking Lounge"
-  ],
-  "builder pass": [
-    "Everything in Student Pass",
-    "Hands-on Cloud Lab Sandbox Access",
-    "48-Hour Builders Hackathon Entry",
-    "Priority Workshop Seating",
-    "Daily Lunch & High Tea Networking",
-    "Exclusive AWS Builder Hoodie & Kit"
-  ],
-  "all-access vip pass": [
-    "Everything in Builder Pass",
-    "Front-Row Keynote Reserved Seating",
-    "Speaker & Executive Lounge Entry",
-    "Private Networking Dinner with Speakers",
-    "1-on-1 Engineering Career Mentorship",
-    "AWS Certification Prep Exam Voucher"
-  ]
-}
 
 export default function TicketsPage() {
   const router = useRouter()
@@ -380,13 +356,6 @@ export default function TicketsPage() {
             ) : (
               <div className="grid gap-8 lg:grid-cols-3">
                 {categories.map((cat, idx) => {
-                  const key = cat.name.toLowerCase().trim()
-                  const perks = tierPerks[key] || [
-                    "5-Day Full Festival Admission",
-                    "Access to Keynotes & Technical Tracks",
-                    "Official Delegate Kit & Certificate",
-                    "Community Networking Access"
-                  ]
                   const priceInRupees = cat.price_in_paise / 100
                   const isHighlight = idx === 1 || cat.name.toLowerCase().includes("builder")
                   const isSelected = selectedCategoryId === cat.id
@@ -415,9 +384,15 @@ export default function TicketsPage() {
                           <h3 className="text-2xl font-light tracking-tight">{cat.name}</h3>
                         </div>
 
-                        <p className="mt-2 text-xs leading-relaxed text-white/50">
-                          {cat.description}
-                        </p>
+                        <div className="ticket-description mt-2 text-xs leading-relaxed text-white/60 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-base [&_h1]:font-semibold [&_h1]:text-white [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:text-white [&_h3]:mb-2 [&_h3]:mt-3 [&_h3]:text-xs [&_h3]:font-semibold [&_h3]:text-white [&_ul]:my-3 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_li]:pl-1 [&_li]:marker:text-[#FF00D4] [&_strong]:font-semibold [&_strong]:text-white [&_em]:text-white/80 [&_a]:text-[#FF2D87] [&_a]:underline [&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-[#FF00D4] [&_blockquote]:pl-3 [&_blockquote]:text-white/50">
+                          {cat.description?.trim() ? (
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {cat.description}
+                            </ReactMarkdown>
+                          ) : (
+                            <p className="text-white/40">No description available.</p>
+                          )}
+                        </div>
 
                         <div className="my-8 flex items-baseline gap-2">
                           <span className="text-5xl font-extralight tracking-tight text-white">
@@ -438,14 +413,6 @@ export default function TicketsPage() {
                           </span>
                         </div>
 
-                        <ul className="space-y-3.5">
-                          {perks.map((perk) => (
-                            <li key={perk} className="flex items-start gap-3 text-xs text-white/75">
-                              <Check className="h-4 w-4 shrink-0 text-[#FF00D4]" />
-                              <span>{perk}</span>
-                            </li>
-                          ))}
-                        </ul>
                       </div>
 
                       <div className="mt-10 border-t border-white/10 pt-6">
