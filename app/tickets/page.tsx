@@ -357,7 +357,10 @@ export default function TicketsPage() {
               <div className="grid gap-8 lg:grid-cols-3">
                 {categories.map((cat, idx) => {
                   const priceInRupees = cat.price_in_paise / 100
-                  const isHighlight = idx === 1 || cat.name.toLowerCase().includes("builder")
+                  const isHighlight =
+                    cat.is_recommended !== undefined
+                      ? cat.is_recommended
+                      : idx === 1 || cat.name.toLowerCase().includes("builder")
                   const isSelected = selectedCategoryId === cat.id
                   const available = (cat.quantity || 100) - (cat.quantity_sold || 0)
                   const isSoldOut = available <= 0
