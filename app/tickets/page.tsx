@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import {
   Check,
   ShieldCheck,
@@ -12,37 +14,23 @@ import {
   Clock,
   Lock,
   Loader2,
-  Info
+  Info,
+  Sparkles
 } from "lucide-react"
 import { useAuth } from "@/providers/auth-provider"
 import { openRazorpayCheckout } from "@/lib/razorpay"
 import type { TicketCategory, Order, Ticket } from "@/types/ticketing"
 
-const tierPerks: Record<string, string[]> = {
-  "student pass (early bird)": [
-    "Full 5-Day Access (Nov 30 – Dec 4)",
-    "Keynotes & Technical Breakout Tracks",
-    "Official Festival Kit & Lanyard",
-    "Digital Certificate of Participation",
-    "Access to Builder Networking Lounge"
-  ],
-  "builder pass": [
-    "Everything in Student Pass",
-    "Hands-on Cloud Lab Sandbox Access",
-    "48-Hour Builders Hackathon Entry",
-    "Priority Workshop Seating",
-    "Daily Lunch & High Tea Networking",
-    "Exclusive AWS Builder Hoodie & Kit"
-  ],
-  "all-access vip pass": [
-    "Everything in Builder Pass",
-    "Front-Row Keynote Reserved Seating",
-    "Speaker & Executive Lounge Entry",
-    "Private Networking Dinner with Speakers",
-    "1-on-1 Engineering Career Mentorship",
-    "AWS Certification Prep Exam Voucher"
-  ]
-}
+const universalPerksMarkdown = `
+- **Keynotes Sessions:** Keynotes session by industry leaders & AWS experts
+- **Live Hands-on Workshops:** Practical cloud labs and technical workshops
+- **MLH Hack Days:** 12-hour builder hackathon with mentorship & prizes
+- **AWS Cloud Credits:** AWS credits for all attendees
+- **AWS Certification Voucher:** Official AWS certification exam voucher worth upto $300
+- **Builder Center Subscription:** $579 AWS Builder Center subscription for all students
+- **Limited Edition Goodies:** AWS limited edition swag and kits for all attendees
+- **Food & Refreshments:** Complimentary meals, high-tea, and refreshments
+`
 
 export default function TicketsPage() {
   const router = useRouter()
@@ -375,17 +363,14 @@ export default function TicketsPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-8 lg:grid-cols-3">
+              <>
+                <div className="grid gap-8 lg:grid-cols-3">
                 {categories.map((cat, idx) => {
-                  const key = cat.name.toLowerCase().trim()
-                  const perks = tierPerks[key] || [
-                    "5-Day Full Festival Admission",
-                    "Access to Keynotes & Technical Tracks",
-                    "Official Delegate Kit & Certificate",
-                    "Community Networking Access"
-                  ]
                   const priceInRupees = cat.price_in_paise / 100
-                  const isHighlight = idx === 1 || cat.name.toLowerCase().includes("builder")
+                  const isHighlight =
+                    cat.is_recommended !== undefined
+                      ? cat.is_recommended
+                      : idx === 1 || cat.name.toLowerCase().includes("builder")
                   const isSelected = selectedCategoryId === cat.id
                   const available = (cat.quantity || 100) - (cat.quantity_sold || 0)
                   const isSoldOut = available <= 0
@@ -412,9 +397,15 @@ export default function TicketsPage() {
                           <h3 className="text-2xl font-light tracking-tight">{cat.name}</h3>
                         </div>
 
-                        <p className="mt-2 text-xs leading-relaxed text-white/50">
-                          {cat.description}
-                        </p>
+                        <div className="ticket-description mt-2 text-xs leading-relaxed text-white/60 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-base [&_h1]:font-semibold [&_h1]:text-white [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:text-white [&_h3]:mb-2 [&_h3]:mt-3 [&_h3]:text-xs [&_h3]:font-semibold [&_h3]:text-white [&_ul]:my-3 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_li]:pl-1 [&_li]:marker:text-[#FF00D4] [&_strong]:font-semibold [&_strong]:text-white [&_em]:text-white/80 [&_a]:text-[#FF2D87] [&_a]:underline [&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-[#FF00D4] [&_blockquote]:pl-3 [&_blockquote]:text-white/50">
+                          {cat.description?.trim() ? (
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {cat.description}
+                            </ReactMarkdown>
+                          ) : (
+                            <p className="text-white/40">No description available.</p>
+                          )}
+                        </div>
 
                         <div className="my-8 flex items-baseline gap-2">
                           <span className="text-5xl font-extralight tracking-tight text-white">
@@ -435,14 +426,6 @@ export default function TicketsPage() {
                           </span>
                         </div>
 
-                        <ul className="space-y-3.5">
-                          {perks.map((perk) => (
-                            <li key={perk} className="flex items-start gap-3 text-xs text-white/75">
-                              <Check className="h-4 w-4 shrink-0 text-[#FF00D4]" />
-                              <span>{perk}</span>
-                            </li>
-                          ))}
-                        </ul>
                       </div>
 
                       <div className="mt-10 border-t border-white/10 pt-6">
@@ -478,7 +461,36 @@ export default function TicketsPage() {
                     </div>
                   )
                 })}
+</div>
+
+              <div className="mt-16 border border-white/10 bg-linear-to-b from-white/3 to-transparent p-6 sm:p-10">
+                <div className="mb-8 flex flex-col gap-2 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <div className="mb-2 flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-[#FF00D4]" />
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FF00D4]">
+                        Universal Festival Perks
+                      </span>
+                    </div>
+                    <h2 className="text-2xl font-light tracking-tight text-white sm:text-3xl">
+                      Included with{" "}
+                      <span className="bg-linear-to-r from-[#FF2D87] via-[#FF00D4] to-[#8B5CFF] bg-clip-text text-transparent">
+                        Every Pass
+                      </span>
+                    </h2>
+                  </div>
+                  <p className="max-w-sm text-xs text-white/50">
+                    Guaranteed for every registered attendee across all pass tiers.
+                  </p>
+                </div>
+
+                <div className="universal-perks-markdown text-xs text-white/70 leading-relaxed [&_ul]:grid [&_ul]:gap-4 [&_ul]:sm:grid-cols-2 [&_ul]:lg:grid-cols-4 [&_ul]:list-none [&_li]:relative [&_li]:border [&_li]:border-white/10 [&_li]:bg-white/2 [&_li]:p-5 [&_li]:transition-all [&_li]:duration-200 [&_li:hover]:border-[#FF00D4]/50 [&_li:hover]:bg-white/4 [&_li]:flex [&_li]:flex-col [&_strong]:text-[#FF2D87] [&_strong]:text-sm [&_strong]:font-medium [&_strong]:block [&_strong]:mb-1.5">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {universalPerksMarkdown}
+                  </ReactMarkdown>
+                </div>
               </div>
+              </>
             )}
 
             {selectedCategory && !existingTicket && (
@@ -644,10 +656,10 @@ export default function TicketsPage() {
                 </div>
                 <div className="flex justify-between py-1">
                   <span className="text-white/40">Status</span>
-                  <span className="text-emerald-400 uppercase font-semibold">Confirmed</span>
+<span className="text-emerald-400 uppercase font-semibold">Confirmed</span>
                 </div>
               </div>
-            )}
+             )}
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
